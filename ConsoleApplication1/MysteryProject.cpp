@@ -40,18 +40,46 @@ int main(int argc, char* args[])	{
 	SDL_SetRenderDrawColor(renderer, 85, 25, 145, 255);
 
 	// --------------------------------------------------------------------- Main Loop
+	bool running = true;
 
-	//Clear screen
-	SDL_RenderClear(renderer);
+	while(running) {
+		
+		SDL_Event event;
+		while (SDL_PollEvent(&event) != 0) {
+			switch (event.type)
+			{
+			case SDL_QUIT: {
+				running = false;
+			} break;
 
-	// all drawing should happen between these two SDL_Render functions
+			case SDL_KEYUP: {
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE: {
+					running = false;
+				} break;
 
-	//Update screen
-	SDL_RenderPresent(renderer);
+				default:
+					break;
+				}
+			} break;
 
-	//Wait two seconds
-	SDL_Delay(2000);
+			default:
+				break;
+			}
+		}
 
+		//Clear screen
+		SDL_RenderClear(renderer);
+
+		// all drawing should happen between these two SDL_Render functions
+
+
+		//Update screen
+		SDL_RenderPresent(renderer);
+	}
+
+	// --------------------------------------------------------------------- Shut Down
+	
 	//Destroy window
 	SDL_DestroyWindow(window);
 
