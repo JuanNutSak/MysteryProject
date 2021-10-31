@@ -5,7 +5,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define TARGET_MS ((double)16.6667)
+#define TARGET_SECONDS ((double)0.0166667)
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -16,7 +16,31 @@ typedef int8_t int8;
 typedef int16_t int16;
 typedef int32_t int32;
 typedef int64_t int64;
-SDL_Texture* loadTexture(std::string path, SDL_Renderer* renderer)
+
+static uint64 global_performance_frequency;
+
+uint64 GetTickCounter()
+{
+	uint64 result = 0;
+	result = SDL_GetPerformanceCounter();
+	return result;
+}
+
+double GetSecondsElapsed(uint64 start)
+{
+	double result = 0.0;
+	result = (double)(GetTickCounter() - start) / (double)global_performance_frequency;
+	return result;
+}
+
+double GetSecondsElapsed(uint64 start, uint64 end)
+{
+	double result = 0.0;
+	result = (double)(end - start) / (double)global_performance_frequency;
+	return result;
+}
+
+SDL_Texture* LoadTexture(std::string path, SDL_Renderer* renderer)
 {
 	//The final texture
 	SDL_Texture* newTexture = NULL;
@@ -45,7 +69,8 @@ SDL_Texture* loadTexture(std::string path, SDL_Renderer* renderer)
 
 int main(int argc, char* args[])	{
 	
-	uint64 perfFrequency = SDL_GetPerformanceFrequency();
+	global_performance_frequency = SDL_GetPerformanceFrequency();
+	uint64 preInitCounter = GetTickCounter();
 
 	// --------------------------------------------------------------------- Initialization
 	//The window we'll be rendering to
@@ -81,16 +106,17 @@ int main(int argc, char* args[])	{
 	}
 
 	SDL_SetRenderDrawColor(renderer, 85, 25, 145, 255);
-	SDL_Texture* dot = loadTexture("C:/Users/freez/source/repos/ConsoleApplication1/particle.png", renderer);
+	//SDL_Texture* dot = LoadTexture("C:/Users/freez/source/repos/ConsoleApplication1/particle.png", renderer);
+	
+	double millisToInit = GetSecondsElapsed(preInitCounter) * 1000.0f;
+	printf("\ninit time: %f\n\n", millisToInit);
 
 	// --------------------------------------------------------------------- Main Loop
-	bool running = true;
-	uint64 LastCounter = SDL_GetPerformanceCounter();
-
+	bool running = true;	
 	while(running) {
-		
-		SDL_Event event;
-		
+		uint64 workStart = GetTickCounter();
+
+		SDL_Event event;		
 		while (SDL_PollEvent(&event) != 0) {
 			switch (event.type)
 			{
@@ -116,23 +142,36 @@ int main(int argc, char* args[])	{
 
 		//Clear screen
 		SDL_RenderClear(renderer);
-
-		// all drawing should happen between these two SDL_Render functions
+		
 		//Render texture to screen
-		SDL_Rect dest = SDL_Rect{ 440,160,400,400 };
-		SDL_RenderCopy(renderer, dot, NULL, &dest);
+		SDL_Rect dest = SDL_Rect{ 440, 160, 400, 400 };
+		//SDL_RenderCopy(renderer, dot, NULL, &dest);
 
 		//Update screen
 		SDL_RenderPresent(renderer);
 
-		uint64 EndCounter = SDL_GetPerformanceCounter();
-		uint64 CounterElapsed = EndCounter - LastCounter;
+		// --------------------------------------------------  END OF FRAME - Calculate and Enforce Timing		
+		double workTime = GetSecondsElapsed(workStart);		
+		//printf("\nmilliseconds to update and render: %.6f\n", workTime * 1000.0);
+			
+		if (workTime >= TARGET_SECONDS) {	// we missed a frame		
+			printf("\nmissed frame by %.4f seconds.\n", workTime - TARGET_SECONDS);
+		}
+		else {	// wait until its time for next frame
+		
+			// convert the wait interval to milliseconds for 'SDL_Delay's sake    		
+			/* 10ms is the granularity of SDL_Delay, so to prevent it waiting too long, we subtract the possible overshoot
+				and wait the rest of the time with a more precise method. NOTE : we don't use the precise method for the whole
+			   duration because it hogs the OSs attention where SDL_Delay does not */
+			int waitInterval = ((int32)((TARGET_SECONDS - workTime) * 1000.0)) - 10;
+			SDL_Delay(waitInterval > 0 ? waitInterval : 0);
 
-		double MSPerFrame = (((1000.0f * (double)CounterElapsed) / (double)perfFrequency));
-		double FPS = (double)perfFrequency / (double)CounterElapsed;
-		LastCounter = EndCounter;
-
-		printf("%.02f ms/f, %.02ff/s\n", MSPerFrame, FPS);
+			double totalTime = GetSecondsElapsed(workStart);
+			while (totalTime < TARGET_SECONDS)
+				totalTime = GetSecondsElapsed(workStart);
+		
+			printf("total milliseconds this frame: %.4f\n", totalTime * 1000.0);
+		}
 	}
 
 	// --------------------------------------------------------------------- Shut Down
@@ -140,7 +179,7 @@ int main(int argc, char* args[])	{
 	//Destroy window
 	SDL_DestroyWindow(window);
 
-	SDL_DestroyTexture(dot);
+	//SDL_DestroyTexture(dot);
 	//Quit SDL subsystems
 	SDL_Quit();
 
