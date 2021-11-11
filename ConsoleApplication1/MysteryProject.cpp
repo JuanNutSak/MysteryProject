@@ -19,6 +19,50 @@ typedef int64_t int64;
 
 static uint64 global_performance_frequency;
 
+struct vec2D
+{
+	float x, y;
+};
+struct particle 
+{
+	vec2D position;
+	SDL_Color color;
+	vec2D velocity;
+	uint32 size;
+};
+
+particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s)
+{
+	particle result;
+
+	result.position = { x, y };
+	result.color = { r, g, b };
+	result.velocity = { 0, 0 };
+	result.size = s;
+
+	return result;
+}
+
+int RandInt(int minNum, int maxNum)
+{
+	return minNum + rand() % ((maxNum + 1) - minNum);
+}
+
+particle CreateRandParticle()
+{
+	return CreateParticle((float)RandInt(0,1280), (float)RandInt(0, 720), RandInt(0,255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
+}
+
+void DrawParticle(particle *p, SDL_Renderer *renderer, SDL_Texture *img) 
+{
+	vec2D offset = {p->position.x - (float)p->size/2.0 , p->position.y - (float)p->size/2.0 };
+
+	SDL_Rect dest = SDL_Rect{ (int)offset.x, (int)offset.y, (int)p->size, (int)p->size };
+	//SDL_SetRenderDrawColor(renderer, p->color.r, p->color.g, p->color.b, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+	SDL_RenderCopy(renderer, img, NULL, &dest);
+}
+
 uint64 GetTickCounter()
 {
 	uint64 result = 0;
@@ -71,6 +115,11 @@ int main(int argc, char* args[])	{
 	
 	global_performance_frequency = SDL_GetPerformanceFrequency();
 	uint64 preInitCounter = GetTickCounter();
+	particle dots[100];
+	for (int i = 0; i < 100; i++) 
+	{
+		dots[i] = CreateRandParticle();
+	}
 
 	// --------------------------------------------------------------------- Initialization
 	//The window we'll be rendering to
@@ -105,8 +154,7 @@ int main(int argc, char* args[])	{
 		return -1;
 	}
 
-	SDL_SetRenderDrawColor(renderer, 85, 25, 145, 255);
-	//SDL_Texture* dot = LoadTexture("C:/Users/freez/source/repos/ConsoleApplication1/particle.png", renderer);
+	SDL_Texture* dot = LoadTexture("C:/Users/freez/source/repos/ConsoleApplication1/particle.png", renderer);
 	
 	double millisToInit = GetSecondsElapsed(preInitCounter) * 1000.0f;
 	printf("\ninit time: %f\n\n", millisToInit);
@@ -140,12 +188,15 @@ int main(int argc, char* args[])	{
 			}
 		}
 
+		SDL_SetRenderDrawColor(renderer,0,0,0,255);
 		//Clear screen
 		SDL_RenderClear(renderer);
 		
 		//Render texture to screen
-		SDL_Rect dest = SDL_Rect{ 440, 160, 400, 400 };
-		//SDL_RenderCopy(renderer, dot, NULL, &dest);
+		for (int i = 0; i < 100; i++)
+		{
+			DrawParticle(&dots[i], renderer, dot);
+		}
 
 		//Update screen
 		SDL_RenderPresent(renderer);
@@ -170,7 +221,7 @@ int main(int argc, char* args[])	{
 			while (totalTime < TARGET_SECONDS)
 				totalTime = GetSecondsElapsed(workStart);
 		
-			printf("total milliseconds this frame: %.4f\n", totalTime * 1000.0);
+			//printf("total milliseconds this frame: %.4f\n", totalTime * 1000.0);
 		}
 	}
 
@@ -179,7 +230,7 @@ int main(int argc, char* args[])	{
 	//Destroy window
 	SDL_DestroyWindow(window);
 
-	//SDL_DestroyTexture(dot);
+	SDL_DestroyTexture(dot);
 	//Quit SDL subsystems
 	SDL_Quit();
 
