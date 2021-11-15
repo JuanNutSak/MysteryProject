@@ -93,7 +93,7 @@ SDL_Texture* LoadTexture(std::string path, SDL_Renderer* renderer)
 	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
 	if (loadedSurface == NULL)
 	{
-		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());		
 	}
 	else
 	{
@@ -156,6 +156,11 @@ int main(int argc, char* args[])	{
 
 	SDL_Texture* dot = LoadTexture("C:/Users/freez/source/repos/ConsoleApplication1/particle.png", renderer);
 	
+	if (!dot) {
+		SDL_Quit();
+		return -1;
+	}
+
 	double millisToInit = GetSecondsElapsed(preInitCounter) * 1000.0f;
 	printf("\ninit time: %f\n\n", millisToInit);
 
