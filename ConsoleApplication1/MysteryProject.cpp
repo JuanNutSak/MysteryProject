@@ -23,16 +23,19 @@ struct vec2D
 {
 	float x, y;
 };
-struct particle 
-{
+
+enum image_id {
+	PARTICLE
+};
+
+struct particle {
 	vec2D position;
 	SDL_Color color;
 	vec2D velocity;
 	uint32 size;
 };
 
-particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s)
-{
+particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s)	{
 	particle result;
 
 	result.position = { x, y };
@@ -43,57 +46,58 @@ particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s)
 	return result;
 }
 
-int RandInt(int minNum, int maxNum)
-{
+int RandInt(int minNum, int maxNum)	{
 	return minNum + rand() % ((maxNum + 1) - minNum);
 }
 
-particle CreateRandParticle()
-{
+particle CreateRandParticle()	{
 	return CreateParticle((float)RandInt(0,1280), (float)RandInt(0, 720), RandInt(0,255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
 }
 
-void DrawParticle(particle *p, SDL_Renderer *renderer, SDL_Texture *img) 
-{
+void DrawParticle(particle *p, SDL_Renderer *renderer, SDL_Texture *img) {
 	vec2D offset = {p->position.x - (float)p->size/2.0 , p->position.y - (float)p->size/2.0 };
 
 	SDL_Rect dest = SDL_Rect{ (int)offset.x, (int)offset.y, (int)p->size, (int)p->size };
-	//SDL_SetRenderDrawColor(renderer, p->color.r, p->color.g, p->color.b, 255);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+	SDL_SetTextureColorMod(img, p->color.r, p->color.g, p->color.b);
 	SDL_RenderCopy(renderer, img, NULL, &dest);
 }
 
-uint64 GetTickCounter()
-{
+uint64 GetTickCounter()	{
 	uint64 result = 0;
 	result = SDL_GetPerformanceCounter();
 	return result;
 }
 
-double GetSecondsElapsed(uint64 start)
-{
+double GetSecondsElapsed(uint64 start)	{
 	double result = 0.0;
 	result = (double)(GetTickCounter() - start) / (double)global_performance_frequency;
 	return result;
 }
 
-double GetSecondsElapsed(uint64 start, uint64 end)
-{
+double GetSecondsElapsed(uint64 start, uint64 end)	{
 	double result = 0.0;
 	result = (double)(end - start) / (double)global_performance_frequency;
 	return result;
 }
 
-SDL_Texture* LoadTexture(std::string path, SDL_Renderer* renderer)
-{
+SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
+	char* basePath = SDL_GetBasePath();
+	char assetPath[512];
+	memset(assetPath, 0, 512);
+	strncat_s(assetPath, basePath, strlen(basePath));
+	strncat_s(assetPath, "..\\..\\assets\\", 14);
+	strncat_s(assetPath, textures[texture], strlen(textures[texture]));	
+
+	SDL_free(basePath);
+
 	//The final texture
 	SDL_Texture* newTexture = NULL;
 
 	//Load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
+	SDL_Surface* loadedSurface = IMG_Load(assetPath);
 	if (loadedSurface == NULL)
 	{
-		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());		
+		printf("Unable to load image %s! SDL_image Error: %s\n", assetPath, IMG_GetError());
 	}
 	else
 	{
@@ -101,7 +105,7 @@ SDL_Texture* LoadTexture(std::string path, SDL_Renderer* renderer)
 		newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
 		if (newTexture == NULL)
 		{
-			printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
+			printf("Unable to create texture from %s! SDL Error: %s\n", assetPath, SDL_GetError());
 		}
 
 		//Get rid of old loaded surface
@@ -115,6 +119,12 @@ int main(int argc, char* args[])	{
 	
 	global_performance_frequency = SDL_GetPerformanceFrequency();
 	uint64 preInitCounter = GetTickCounter();
+	
+	char textures[1][64];
+	memset(textures, 0, 64);
+
+	strncat_s(textures[PARTICLE], "particle.png", 12);
+
 	particle dots[100];
 	for (int i = 0; i < 100; i++) 
 	{
@@ -153,8 +163,12 @@ int main(int argc, char* args[])	{
 		SDL_Quit();
 		return -1;
 	}
+		
+	char textureName[64];
+	memset(textureName, 0, 64);
+	strncat_s(textureName, "particle.png", 12);
 
-	SDL_Texture* dot = LoadTexture("C:/Users/freez/source/repos/ConsoleApplication1/particle.png", renderer);
+	SDL_Texture* dot = LoadTexture(PARTICLE, renderer, textures);
 	
 	if (!dot) {
 		SDL_Quit();
@@ -162,7 +176,7 @@ int main(int argc, char* args[])	{
 	}
 
 	double millisToInit = GetSecondsElapsed(preInitCounter) * 1000.0f;
-	printf("\ninit time: %f\n\n", millisToInit);
+	printf("\ninit time: %fms\n\n", millisToInit);
 
 	// --------------------------------------------------------------------- Main Loop
 	bool running = true;	
