@@ -2,6 +2,8 @@
 
 #include <ctype.h>
 #include <iostream>
+#include <SDL.h>
+#include <SDL_image.h>
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -13,5 +15,8 @@ typedef int16_t int16;
 typedef int32_t int32;
 typedef int64_t int64;
 
-#include <SDL.h>
-#include <SDL_image.h>
+//TODO: move to math file
+struct vec2D
+{
+	float x, y;
+};

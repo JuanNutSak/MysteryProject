@@ -1,58 +1,17 @@
 #include <iostream>
 
 #include "globals.h"
-
 #include "timing.h"
-
-
-struct vec2D
-{
-	float x, y;
-};
+#include "particle.h"
 
 enum image_id {
 	PARTICLE
-};
-
-struct particle {
-	vec2D position;
-	SDL_Color color;
-	vec2D velocity;
-	uint32 size;
 };
 
 struct game_state {
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 };
-
-particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s)	{
-	particle result;
-
-	result.position = { x, y };
-	result.color = { r, g, b };
-	result.velocity = { 0, 0 };
-	result.size = s;
-
-	return result;
-}
-
-int RandInt(int minNum, int maxNum)	{
-	return minNum + rand() % ((maxNum + 1) - minNum);
-}
-
-particle CreateRandParticle()	{
-	return CreateParticle((float)RandInt(0,1280), (float)RandInt(0, 720), RandInt(0,255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
-}
-
-void DrawParticle(particle *p, SDL_Renderer *renderer, SDL_Texture *img) {
-	vec2D offset = {p->position.x - (float)p->size/2.0 , p->position.y - (float)p->size/2.0 };
-
-	SDL_Rect dest = SDL_Rect{ (int)offset.x, (int)offset.y, (int)p->size, (int)p->size };
-	SDL_SetTextureColorMod(img, p->color.r, p->color.g, p->color.b);
-	SDL_RenderCopy(renderer, img, NULL, &dest);
-}
-
 
 SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
 	char* basePath = SDL_GetBasePath();
@@ -130,9 +89,9 @@ int main(int argc, char* args[])	{
 	memset(textures, 0, 64);
 
 	strncat_s(textures[PARTICLE], "particle.png", 12);
-
-	particle dots[100];
-	for (int i = 0; i < 100; i++) 
+	const int size = 1;
+	particle dots[size];
+	for (int i = 0; i < size; i++) 
 	{
 		dots[i] = CreateRandParticle();
 	}
@@ -160,7 +119,7 @@ int main(int argc, char* args[])	{
 	while(running) {
 		StartTimer(WORK);
 		StartTimer(TOTAL);
-
+		// --------------------------------------------------------------------- SDL Event Handling
 		SDL_Event event;		
 		while (SDL_PollEvent(&event) != 0) {
 			switch (event.type)
@@ -184,25 +143,33 @@ int main(int argc, char* args[])	{
 				break;
 			}
 		}
+		
+		// --------------------------------------------------------------------- Update
+		for (int i = 0; i < size; i++)
+		{
+			UpdateParticle(&dots[i]);
 
+		}
+
+		// --------------------------------------------------------------------- Render
 		SDL_SetRenderDrawColor(state.renderer,0,0,0,255);
 		//Clear screen
 		SDL_RenderClear(state.renderer);
 		
 		//Render texture to screen
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < size; i++)
 		{
 			DrawParticle(&dots[i], state.renderer, dot);
+
 		}
 
 		//Update screen
 		SDL_RenderPresent(state.renderer);
 
-		// --------------------------------------------------  END OF FRAME - Calculate and Enforce Timing		
+		// --------------------------------------------------------------------- END OF FRAME - Calculate and Enforce Timing		
 		double workTime = StopTimer(WORK);
 
 		FrameDelay(workTime);
-		
 	}
 
 	// --------------------------------------------------------------------- Shut Down

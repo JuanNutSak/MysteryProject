@@ -26,5 +26,8 @@
     <ClInclude Include="timing.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="particle.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

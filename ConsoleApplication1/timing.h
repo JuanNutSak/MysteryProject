@@ -51,19 +51,18 @@ void FrameDelay(double workTime) {
 	if (workTime >= TARGET_MS) {	// we missed a frame		
 		printf("\nmissed frame by %.4f seconds.\n", workTime - TARGET_MS);
 	}
-	else {	// wait until its time for next frame
+	// wait until its time for next frame
 
-		// convert the wait interval to milliseconds for 'SDL_Delay's sake    		
-		/* 10ms is the granularity of SDL_Delay, so to prevent it waiting too long, we subtract the possible overshoot
-			and wait the rest of the time with a more precise method. NOTE : we don't use the precise method for the whole
-		   duration because it hogs the OSs attention where SDL_Delay does not */
-		int waitInterval = ((int32)((TARGET_MS - workTime) * 1000.0)) - 10;
-		SDL_Delay(waitInterval > 0 ? waitInterval : 0);
+	// convert the wait interval to milliseconds for 'SDL_Delay's sake    		
+	/* 10ms is the granularity of SDL_Delay, so to prevent it waiting too long, we subtract the possible overshoot
+		and wait the rest of the time with a more precise method. NOTE : we don't use the precise method for the whole
+		duration because it hogs the OSs attention where SDL_Delay does not */
+	int waitInterval = ((int32)((TARGET_MS - workTime) * 1000.0)) - 10;
+	SDL_Delay(waitInterval > 0 ? waitInterval : 0);
 
-		double totalTime = StopTimer(TOTAL);
-		while (totalTime < TARGET_MS)
-			totalTime = StopTimer(TOTAL);
+	double totalTime = StopTimer(TOTAL);
+	while (totalTime < TARGET_MS)
+		totalTime = StopTimer(TOTAL);
 
-		printf("total milliseconds this frame: %.4f\n", totalTime);
-	}
+	printf("total milliseconds this frame: %.4f\n", totalTime);
 }
