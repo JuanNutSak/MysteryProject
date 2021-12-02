@@ -1,23 +1,9 @@
 #include <iostream>
 
-#include <ctype.h>
+#include "globals.h"
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include "timing.h"
 
-#define TARGET_SECONDS ((double)0.0166667)
-
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-
-static uint64 global_performance_frequency;
 
 struct vec2D
 {
@@ -33,6 +19,11 @@ struct particle {
 	SDL_Color color;
 	vec2D velocity;
 	uint32 size;
+};
+
+struct game_state {
+	SDL_Window* window;
+	SDL_Renderer* renderer;
 };
 
 particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s)	{
@@ -62,23 +53,6 @@ void DrawParticle(particle *p, SDL_Renderer *renderer, SDL_Texture *img) {
 	SDL_RenderCopy(renderer, img, NULL, &dest);
 }
 
-uint64 GetTickCounter()	{
-	uint64 result = 0;
-	result = SDL_GetPerformanceCounter();
-	return result;
-}
-
-double GetSecondsElapsed(uint64 start)	{
-	double result = 0.0;
-	result = (double)(GetTickCounter() - start) / (double)global_performance_frequency;
-	return result;
-}
-
-double GetSecondsElapsed(uint64 start, uint64 end)	{
-	double result = 0.0;
-	result = (double)(end - start) / (double)global_performance_frequency;
-	return result;
-}
 
 SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
 	char* basePath = SDL_GetBasePath();
@@ -115,11 +89,43 @@ SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures
 	return newTexture;
 }
 
+int InitializeSDL(game_state *state) {
+	//Initialize SDL
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		return -1;
+	}
+
+	//Initialize PNG loading	
+	if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+		printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+		SDL_Quit();
+		return -1;
+	}
+
+	//Create window
+	state->window = SDL_CreateWindow("SDL Tutorial", 0, 0, 1280, 720, SDL_WINDOW_ALLOW_HIGHDPI);
+	if (state->window == NULL) {
+		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+		SDL_Quit();
+		return -1;
+	}
+
+	//Create renderer for window
+	state->renderer = SDL_CreateRenderer(state->window, -1, SDL_RENDERER_ACCELERATED);
+	if (state->renderer == NULL) {
+		printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+		SDL_Quit();
+		return -1;
+	}
+}
+
 int main(int argc, char* args[])	{
+	InitTimers();
+	StartTimer(INIT);
 	
-	global_performance_frequency = SDL_GetPerformanceFrequency();
-	uint64 preInitCounter = GetTickCounter();
-	
+	game_state state = { 0 };
+
 	char textures[1][64];
 	memset(textures, 0, 64);
 
@@ -132,56 +138,28 @@ int main(int argc, char* args[])	{
 	}
 
 	// --------------------------------------------------------------------- Initialization
-	//The window we'll be rendering to
-	SDL_Window* window = NULL;
+	
+	InitializeSDL(&state);
 
-	//Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)	{
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-		return -1;
-	}
-
-	//Initialize PNG loading	
-	if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG))	{
-		printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-		SDL_Quit();
-		return -1;
-	}
-
-	//Create window
-	window = SDL_CreateWindow("SDL Tutorial", 0, 0, 1280, 720, SDL_WINDOW_ALLOW_HIGHDPI);
-	if (window == NULL)	{
-		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-		SDL_Quit();
-		return -1;
-	}
-
-	//Create renderer for window
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	if (renderer == NULL)	{
-		printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-		SDL_Quit();
-		return -1;
-	}
-		
 	char textureName[64];
 	memset(textureName, 0, 64);
 	strncat_s(textureName, "particle.png", 12);
 
-	SDL_Texture* dot = LoadTexture(PARTICLE, renderer, textures);
+	SDL_Texture* dot = LoadTexture(PARTICLE, state.renderer, textures);
 	
 	if (!dot) {
 		SDL_Quit();
 		return -1;
 	}
 
-	double millisToInit = GetSecondsElapsed(preInitCounter) * 1000.0f;
+	double millisToInit = StopTimer(INIT);
 	printf("\ninit time: %fms\n\n", millisToInit);
 
 	// --------------------------------------------------------------------- Main Loop
 	bool running = true;	
 	while(running) {
-		uint64 workStart = GetTickCounter();
+		StartTimer(WORK);
+		StartTimer(TOTAL);
 
 		SDL_Event event;		
 		while (SDL_PollEvent(&event) != 0) {
@@ -207,47 +185,30 @@ int main(int argc, char* args[])	{
 			}
 		}
 
-		SDL_SetRenderDrawColor(renderer,0,0,0,255);
+		SDL_SetRenderDrawColor(state.renderer,0,0,0,255);
 		//Clear screen
-		SDL_RenderClear(renderer);
+		SDL_RenderClear(state.renderer);
 		
 		//Render texture to screen
 		for (int i = 0; i < 100; i++)
 		{
-			DrawParticle(&dots[i], renderer, dot);
+			DrawParticle(&dots[i], state.renderer, dot);
 		}
 
 		//Update screen
-		SDL_RenderPresent(renderer);
+		SDL_RenderPresent(state.renderer);
 
 		// --------------------------------------------------  END OF FRAME - Calculate and Enforce Timing		
-		double workTime = GetSecondsElapsed(workStart);		
-		//printf("\nmilliseconds to update and render: %.6f\n", workTime * 1000.0);
-			
-		if (workTime >= TARGET_SECONDS) {	// we missed a frame		
-			printf("\nmissed frame by %.4f seconds.\n", workTime - TARGET_SECONDS);
-		}
-		else {	// wait until its time for next frame
-		
-			// convert the wait interval to milliseconds for 'SDL_Delay's sake    		
-			/* 10ms is the granularity of SDL_Delay, so to prevent it waiting too long, we subtract the possible overshoot
-				and wait the rest of the time with a more precise method. NOTE : we don't use the precise method for the whole
-			   duration because it hogs the OSs attention where SDL_Delay does not */
-			int waitInterval = ((int32)((TARGET_SECONDS - workTime) * 1000.0)) - 10;
-			SDL_Delay(waitInterval > 0 ? waitInterval : 0);
+		double workTime = StopTimer(WORK);
 
-			double totalTime = GetSecondsElapsed(workStart);
-			while (totalTime < TARGET_SECONDS)
-				totalTime = GetSecondsElapsed(workStart);
+		FrameDelay(workTime);
 		
-			//printf("total milliseconds this frame: %.4f\n", totalTime * 1000.0);
-		}
 	}
 
 	// --------------------------------------------------------------------- Shut Down
 	
 	//Destroy window
-	SDL_DestroyWindow(window);
+	SDL_DestroyWindow(state.window);
 
 	SDL_DestroyTexture(dot);
 	//Quit SDL subsystems
