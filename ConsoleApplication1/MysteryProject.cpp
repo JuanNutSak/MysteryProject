@@ -14,7 +14,7 @@ struct game_state {
 
 	double dt;	
 	vec2D forces[32];
-	particle dots[100];	
+	particle dots[500];	
 };
 
 SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
@@ -95,7 +95,7 @@ int main(int argc, char* args[])	{
 	memset(textures, 0, 64);
 
 	strncat_s(textures[PARTICLE], "particle.png", 12);
-	const int particleCount = 90;	
+	const int particleCount = 5;	
 	for (int i = 0; i < particleCount; i++)
 	{
 		state.dots[i] = CreateRandMovingParticle();
@@ -121,12 +121,12 @@ int main(int argc, char* args[])	{
 
 	// ------------------------------------------------------  Pre - Loop Testing
 
-	vec2D a = Vec2D(1.0, 1.0);
-	vec2D b = Vec2D(10.0, 10.0);
+	vec2D a = Vec2D(0.0, 0.0);
+	vec2D b = Vec2D(10.0, 0.0);
 
-	vec2D c = a + b;
+	double c = DistanceBetween(a,b);
 
-	printf("x: %f, y: %f\n", c.x, c.y);
+	printf("distance: %f\n", c);
 
 	// -------------------------------------------------------------------------
 

@@ -49,6 +49,20 @@ void UpdateParticle(particle* p, vec2D acc, double dt)
 {
 	p->position += p->velocity * dt + (0.5 * acc * dt * dt);	
 	p->velocity += acc * dt;
+
+	//TEMPORARY
+	if (p->position.y > 720 - p->size/2) {
+		p->position.y = 720 - p->size/2;
+		p->velocity.y = -0.5*p->velocity.y;
+	}
+	if (p->position.x < 0) {
+		p->position.x = 0;
+		p->velocity.x = -0.5 * p->velocity.x;
+	}
+	if (p->position.x > 1280) {
+		p->position.x = 1280;
+		p->velocity.x = -0.5 * p->velocity.x;
+	}
 }
 
 void DrawParticle(particle* p, SDL_Renderer* renderer, SDL_Texture* img) {

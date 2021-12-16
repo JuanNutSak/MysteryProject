@@ -1,4 +1,5 @@
 #pragma once
+#include <math.h>
 
 struct vec2D
 {
@@ -12,6 +13,12 @@ vec2D Vec2D(float x, float y)
 	result.y = y;
 
 	return result;	
+}
+
+double DistanceBetween(vec2D a,vec2D b) 
+{
+	double result = sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
+	return result;
 }
 
 inline vec2D
