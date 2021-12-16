@@ -46,7 +46,7 @@ double StopTimer(timed_block type) {
 }
 
 void FrameDelay(double workTime) {
-	//printf("\nmilliseconds to update and render: %.6f\n", workTime * 1000.0);
+	printf("\nmilliseconds to update and render: %.6f\n", workTime);
 
 	if (workTime >= TARGET_MS) {	// we missed a frame		
 		printf("\nmissed frame by %.4f seconds.\n", workTime - TARGET_MS);
@@ -57,7 +57,7 @@ void FrameDelay(double workTime) {
 	/* 10ms is the granularity of SDL_Delay, so to prevent it waiting too long, we subtract the possible overshoot
 		and wait the rest of the time with a more precise method. NOTE : we don't use the precise method for the whole
 		duration because it hogs the OSs attention where SDL_Delay does not */
-	int waitInterval = ((int32)((TARGET_MS - workTime) * 1000.0)) - 10;
+	int waitInterval = ((int32)(TARGET_MS - workTime)) - 10;
 	SDL_Delay(waitInterval > 0 ? waitInterval : 0);
 
 	double totalTime = StopTimer(TOTAL);

@@ -29,8 +29,8 @@ particle CreateRandParticle() {
 }
 
 void UpdateParticle(particle* p) {
-	p->position.x+=100;
-	p->position.y+=100;
+	p->position.x+=1;
+	p->position.y+=1;
 }
 
 void DrawParticle(particle* p, SDL_Renderer* renderer, SDL_Texture* img) {
