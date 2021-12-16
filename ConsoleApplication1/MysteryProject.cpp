@@ -11,6 +11,8 @@ enum image_id {
 struct game_state {
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
+	double dt;
 };
 
 SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
@@ -30,7 +32,7 @@ SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures
 	SDL_Surface* loadedSurface = IMG_Load(assetPath);
 	if (loadedSurface == NULL)
 	{
-		printf("Unable to load image %s! SDL_image Error: %s\n", assetPath, IMG_GetError());
+		//printf("Unable to load image %s! SDL_image Error: %s\n", assetPath, IMG_GetError());
 	}
 	else
 	{
@@ -38,7 +40,7 @@ SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures
 		newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
 		if (newTexture == NULL)
 		{
-			printf("Unable to create texture from %s! SDL Error: %s\n", assetPath, SDL_GetError());
+			//printf("Unable to create texture from %s! SDL Error: %s\n", assetPath, SDL_GetError());
 		}
 
 		//Get rid of old loaded surface
@@ -93,7 +95,7 @@ int main(int argc, char* args[])	{
 	particle dots[size];
 	for (int i = 0; i < size; i++) 
 	{
-		dots[i] = CreateRandParticle();
+		dots[i] = CreateRandMovingParticle();
 	}
 
 	// --------------------------------------------------------------------- Initialization
@@ -113,6 +115,17 @@ int main(int argc, char* args[])	{
 
 	double millisToInit = StopTimer(INIT);
 	printf("\ninit time: %fms\n\n", millisToInit);
+
+	// ------------------------------------------------------  Pre - Loop Testing
+
+	vec2D a = Vec2D(1.0, 1.0);
+	vec2D b = Vec2D(10.0, 10.0);
+
+	vec2D c = a + b;
+
+	printf("x: %f, y: %f\n", c.x, c.y);
+
+	// -------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------- Main Loop
 	bool running = true;	
@@ -147,7 +160,7 @@ int main(int argc, char* args[])	{
 		// --------------------------------------------------------------------- Update
 		for (int i = 0; i < size; i++)
 		{
-			UpdateParticle(&dots[i]);
+			UpdateParticle(&dots[i], state.dt);
 
 		}
 
@@ -169,7 +182,7 @@ int main(int argc, char* args[])	{
 		// --------------------------------------------------------------------- END OF FRAME - Calculate and Enforce Timing		
 		double workTime = StopTimer(WORK);
 
-		FrameDelay(workTime);
+		state.dt = FrameDelay(workTime);
 	}
 
 	// --------------------------------------------------------------------- Shut Down

@@ -149,6 +149,7 @@
     <ClInclude Include="globals.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="timing.h" />
+    <ClInclude Include="vectors.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

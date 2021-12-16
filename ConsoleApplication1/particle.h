@@ -1,7 +1,7 @@
 #pragma once
 
 #include "globals.h"
-//TODO: move to math file
+
 int RandInt(int minNum, int maxNum) {
 	return minNum + rand() % ((maxNum + 1) - minNum);
 }
@@ -24,13 +24,30 @@ particle CreateParticle(float x, float y, uint8 r, uint8 g, uint8 b, uint32 s) {
 	return result;
 }
 
+particle CreateParticle(float x, float y, float vx, float vy, uint8 r, uint8 g, uint8 b, uint32 s) {
+	particle result;
+
+	result.position = { x, y };
+	result.color = { r, g, b };
+	result.velocity = { vx, vy };
+	result.size = s;
+
+	return result;
+}
+
+
+
 particle CreateRandParticle() {
 	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), RandInt(0, 255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
 }
 
-void UpdateParticle(particle* p) {
-	p->position.x+=1;
-	p->position.y+=1;
+particle CreateRandMovingParticle() {
+	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), (float)RandInt(-4, 4), (float)RandInt(-4, 4), RandInt(0, 255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
+}
+
+void UpdateParticle(particle* p, double dt) {
+	p->position.x += p->velocity.x * dt;
+	p->position.y += p->velocity.y * dt;
 }
 
 void DrawParticle(particle* p, SDL_Renderer* renderer, SDL_Texture* img) {

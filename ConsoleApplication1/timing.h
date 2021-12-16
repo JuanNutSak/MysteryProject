@@ -45,8 +45,10 @@ double StopTimer(timed_block type) {
 	return GetSecondsElapsed(timers[type]) * 1000.0f;
 }
 
-void FrameDelay(double workTime) {
-	printf("\nmilliseconds to update and render: %.6f\n", workTime);
+
+// returns the delta time for the frame in seconds
+double FrameDelay(double workTime) {
+	//printf("\nmilliseconds to update and render: %.6f\n", workTime);
 
 	if (workTime >= TARGET_MS) {	// we missed a frame		
 		printf("\nmissed frame by %.4f seconds.\n", workTime - TARGET_MS);
@@ -64,5 +66,6 @@ void FrameDelay(double workTime) {
 	while (totalTime < TARGET_MS)
 		totalTime = StopTimer(TOTAL);
 
-	printf("total milliseconds this frame: %.4f\n", totalTime);
+	//printf("total milliseconds this frame: %.4f\n", totalTime);
+	return totalTime * .001;
 }

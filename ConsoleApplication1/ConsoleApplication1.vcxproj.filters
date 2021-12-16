@@ -29,5 +29,8 @@
     <ClInclude Include="particle.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="vectors.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
