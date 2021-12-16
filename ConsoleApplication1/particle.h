@@ -42,12 +42,13 @@ particle CreateRandParticle() {
 }
 
 particle CreateRandMovingParticle() {
-	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), (float)RandInt(-4, 4), (float)RandInt(-4, 4), RandInt(0, 255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
+	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), (float)RandInt(-300, 300), (float)RandInt(-4, 4), RandInt(0, 255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
 }
 
-void UpdateParticle(particle* p, double dt) {
-	p->position.x += p->velocity.x * dt;
-	p->position.y += p->velocity.y * dt;
+void UpdateParticle(particle* p, vec2D acc, double dt) 
+{
+	p->position += p->velocity * dt + (0.5 * acc * dt * dt);	
+	p->velocity += acc * dt;
 }
 
 void DrawParticle(particle* p, SDL_Renderer* renderer, SDL_Texture* img) {

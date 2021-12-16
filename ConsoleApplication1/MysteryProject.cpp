@@ -12,7 +12,9 @@ struct game_state {
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
-	double dt;
+	double dt;	
+	vec2D forces[32];
+	particle dots[100];	
 };
 
 SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
@@ -87,15 +89,16 @@ int main(int argc, char* args[])	{
 	
 	game_state state = { 0 };
 
+	state.forces[0] = Vec2D(0.0, 980);
+
 	char textures[1][64];
 	memset(textures, 0, 64);
 
 	strncat_s(textures[PARTICLE], "particle.png", 12);
-	const int size = 1;
-	particle dots[size];
-	for (int i = 0; i < size; i++) 
+	const int particleCount = 90;	
+	for (int i = 0; i < particleCount; i++)
 	{
-		dots[i] = CreateRandMovingParticle();
+		state.dots[i] = CreateRandMovingParticle();
 	}
 
 	// --------------------------------------------------------------------- Initialization
@@ -158,21 +161,27 @@ int main(int argc, char* args[])	{
 		}
 		
 		// --------------------------------------------------------------------- Update
-		for (int i = 0; i < size; i++)
+		vec2D totalForce = { 0 };
+		for (int i = 0; i < 32; i++)		{
+			
+			totalForce += state.forces[i];
+		}
+
+		for (int i = 0; i < particleCount; i++)
 		{
-			UpdateParticle(&dots[i], state.dt);
+			UpdateParticle(&state.dots[i], totalForce, state.dt);
 
 		}
 
 		// --------------------------------------------------------------------- Render
-		SDL_SetRenderDrawColor(state.renderer,0,0,0,255);
+		SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 255);
 		//Clear screen
 		SDL_RenderClear(state.renderer);
 		
 		//Render texture to screen
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < particleCount; i++)
 		{
-			DrawParticle(&dots[i], state.renderer, dot);
+			DrawParticle(&state.dots[i], state.renderer, dot);
 
 		}
 
