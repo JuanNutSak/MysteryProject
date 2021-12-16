@@ -42,7 +42,7 @@ particle CreateRandParticle() {
 }
 
 particle CreateRandMovingParticle() {
-	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), (float)RandInt(-300, 300), (float)RandInt(-4, 4), RandInt(0, 255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
+	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), (float)RandInt(-300, 300), (float)RandInt(-800, 0), RandInt(0, 255), RandInt(0, 255), RandInt(0, 255), RandInt(0, 50));
 }
 
 void UpdateParticle(particle* p, vec2D acc, double dt) 
