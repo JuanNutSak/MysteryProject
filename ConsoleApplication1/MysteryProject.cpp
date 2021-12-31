@@ -14,7 +14,8 @@ struct game_state {
 
 	double dt;	
 	vec2D forces[32];
-	particle dots[500];	
+	Explosion explosions[5];
+	int explosionCount = 1;
 };
 
 SDL_Texture* LoadTexture(image_id texture, SDL_Renderer* renderer, char textures[][64]) {	
@@ -88,6 +89,7 @@ int main(int argc, char* args[])	{
 	StartTimer(INIT);
 	
 	game_state state = { 0 };
+	state.explosions[0] = Explosion(Vec2D(600, 450), 1000, 10000);
 
 	state.forces[0] = Vec2D(0.0, 980);
 
@@ -95,11 +97,8 @@ int main(int argc, char* args[])	{
 	memset(textures, 0, 64);
 
 	strncat_s(textures[PARTICLE], "particle.png", 12);
-	const int particleCount = 5;	
-	for (int i = 0; i < particleCount; i++)
-	{
-		state.dots[i] = CreateRandMovingParticle();
-	}
+	int emitterCount = ArrayCount(state.explosions);
+	
 
 	// --------------------------------------------------------------------- Initialization
 	
@@ -119,14 +118,9 @@ int main(int argc, char* args[])	{
 	double millisToInit = StopTimer(INIT);
 	printf("\ninit time: %fms\n\n", millisToInit);
 
-	// ------------------------------------------------------  Pre - Loop Testing
+	// ------------------------------------------------------  Pre - Loop Testing	
+	
 
-	vec2D a = Vec2D(0.0, 0.0);
-	vec2D b = Vec2D(10.0, 0.0);
-
-	double c = DistanceBetween(a,b);
-
-	printf("distance: %f\n", c);
 
 	// -------------------------------------------------------------------------
 
@@ -167,11 +161,11 @@ int main(int argc, char* args[])	{
 			totalForce += state.forces[i];
 		}
 
-		for (int i = 0; i < particleCount; i++)
-		{
-			UpdateParticle(&state.dots[i], totalForce, state.dt);
-
+		for (int i = 0; i < state.explosionCount; i++)
+		{			
+			state.explosions[i].UpdateEmitter(state.dt);
 		}
+		
 
 		// --------------------------------------------------------------------- Render
 		SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 255);
@@ -179,10 +173,9 @@ int main(int argc, char* args[])	{
 		SDL_RenderClear(state.renderer);
 		
 		//Render texture to screen
-		for (int i = 0; i < particleCount; i++)
+		for (int i = 0; i < state.explosionCount; i++)
 		{
-			DrawParticle(&state.dots[i], state.renderer, dot);
-
+			state.explosions[i].DrawEmitter(state.renderer, dot);
 		}
 
 		//Update screen
