@@ -89,7 +89,8 @@ int main(int argc, char* args[])	{
 	StartTimer(INIT);
 	
 	game_state state = { 0 };
-	state.explosions[0] = Explosion(Vec2D(600, 450), 1000, 10000);
+	
+	state.explosions[0] = Explosion(Vec2D(600, 450), 800, 1000, 35, { (uint8)RandInt(0,255), (uint8)RandInt(0,255), (uint8)RandInt(0,255) },true);
 
 	state.forces[0] = Vec2D(0.0, 980);
 
@@ -108,18 +109,18 @@ int main(int argc, char* args[])	{
 	memset(textureName, 0, 64);
 	strncat_s(textureName, "particle.png", 12);
 
+
 	SDL_Texture* dot = LoadTexture(PARTICLE, state.renderer, textures);
 	
 	if (!dot) {
 		SDL_Quit();
 		return -1;
 	}
-
+	SDL_SetTextureBlendMode(dot, SDL_BLENDMODE_ADD);
 	double millisToInit = StopTimer(INIT);
 	printf("\ninit time: %fms\n\n", millisToInit);
 
 	// ------------------------------------------------------  Pre - Loop Testing	
-	
 
 
 	// -------------------------------------------------------------------------
