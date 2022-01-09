@@ -88,11 +88,12 @@ int main(int argc, char* args[])	{
 	InitTimers();
 	StartTimer(INIT);
 	
+	srand(time(NULL));
 	game_state state = { 0 };
 	
-	state.explosions[0] = Explosion(Vec2D(600, 450), 800, 1000, 35, { (uint8)RandInt(0,255), (uint8)RandInt(0,255), (uint8)RandInt(0,255) },true);
+	state.explosions[0] = Explosion(Vec2D(600, 450), 25, 2500, 15, { (uint8)RandInt(0,255), (uint8)RandInt(0,255), (uint8)RandInt(0,255), 255 }, 5, 15);
 
-	state.forces[0] = Vec2D(0.0, 980);
+	state.forces[0] = Vec2D(0.0, 680);
 
 	char textures[1][64];
 	memset(textures, 0, 64);
@@ -170,6 +171,7 @@ int main(int argc, char* args[])	{
 
 		// --------------------------------------------------------------------- Render
 		SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 255);
+		SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
 		//Clear screen
 		SDL_RenderClear(state.renderer);
 		

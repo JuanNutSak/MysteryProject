@@ -24,38 +24,46 @@ struct particle {
 	vec2D velocity;
 	uint32 size;
 	uint32 lifeTime;
+	uint32 initialLifeTime;
+	bool fade;
+	float alpha;
 };
 
-particle CreateParticle(float x, float y, SDL_Color color, uint32 s, float minLifeTime,float maxLifeTime) {
+particle CreateParticle(vec2D pos, SDL_Color color, uint32 s, float minLifeTime,float maxLifeTime, bool fadeOut = false) {
 	particle result;
 
-	result.position = { x, y };
+	result.position = pos;
 	result.color = color;
 	result.velocity = { 0, 0 };
 	result.size = s;
 	result.lifeTime = RandLifeTime(minLifeTime, maxLifeTime);
+	result.initialLifeTime = result.lifeTime;
+	result.fade = fadeOut;
+	result.alpha = 255;
 
 	return result;
 }
 
-particle CreateParticle(float x, float y, float vx, float vy, SDL_Color color, uint32 s, float minLifeTime, float maxLifeTime) {
+particle CreateParticle(vec2D pos, vec2D vel, SDL_Color color, uint32 s, float minLifeTime, float maxLifeTime, bool fadeOut = false) {
 	particle result;
 
-	result.position = { x, y };
+	result.position = pos;
 	result.color = color;
-	result.velocity = { vx, vy };
-	result.size = s;
+	result.velocity = vel;
+	result.size = s;	
 	result.lifeTime = RandLifeTime(minLifeTime, maxLifeTime);
+	result.initialLifeTime = result.lifeTime;
+	result.fade = fadeOut;	
 
 	return result;
 }
 
 particle CreateRandParticle(SDL_Color color) {
-	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), color, RandInt(0, 50), 1, 5);
+	return CreateParticle(Vec2D((float)RandInt(0, 1280), (float)RandInt(0, 720)), color, RandInt(10, 50), RandInt(0.3, 3), RandInt(4, 8));
 }
 
 particle CreateRandMovingParticle(SDL_Color color) {
-	return CreateParticle((float)RandInt(0, 1280), (float)RandInt(0, 720), (float)RandInt(-300, 300), (float)RandInt(-800, 0), color, RandInt(0, 50), 1, 5);
+	return CreateParticle(Vec2D((float)RandInt(0, 1280), (float)RandInt(0, 720)), Vec2D((float)RandInt(-300, 300), (float)RandInt(-800, 0)), color, RandInt(0, 50), RandInt(0.3, 3), RandInt(4, 8));
 }
 
 void UpdateParticle(particle* p, vec2D acc, double dt)
@@ -63,6 +71,12 @@ void UpdateParticle(particle* p, vec2D acc, double dt)
 	if (p->lifeTime > 0) {
 		p->position += p->velocity * dt + (0.5 * acc * dt * dt);
 		p->velocity += acc * dt;
+
+		if (p->fade) {
+			float pct = (float)p->lifeTime / (float)p->initialLifeTime;
+			p->color.a = pct * 255;
+		}
+
 		p->lifeTime--;
 	}
 	
@@ -87,6 +101,7 @@ void DrawParticle(particle* p, SDL_Renderer* renderer, SDL_Texture* img) {
 
 		SDL_Rect dest = SDL_Rect{ (int)offset.x, (int)offset.y, (int)p->size, (int)p->size };
 		SDL_SetTextureColorMod(img, p->color.r, p->color.g, p->color.b);
+		SDL_SetTextureAlphaMod(img, p->color.a);
 		SDL_RenderCopy(renderer, img, NULL, &dest);
 	}
 }
@@ -129,11 +144,11 @@ public:
 
 class Explosion : public ParticleEmitter {		
 public:
-	Explosion(vec2D pos, float explosionPower, int partCount, int radius, SDL_Color color, bool isGravity = false)
+	Explosion(vec2D pos, float explosionPower, int partCount, int radius, SDL_Color color, int minSize, int maxSize, bool isGravity = false)
 		: ParticleEmitter(pos, partCount, isGravity) {
 		for (int i = 0; i < partCount; i++)
 		{			
-			particles[i] = CreateParticle(position.x + RandInt(-radius,radius), position.y + RandInt(-radius,radius), RandInt(-explosionPower, explosionPower), RandInt(-explosionPower, explosionPower), color, 15, 1, 4);
+			particles[i] = CreateParticle(Vec2D(position.x + RandInt(-radius,radius), position.y + RandInt(-radius,radius)), Vec2D(RandInt(-explosionPower, explosionPower), RandInt(-explosionPower, explosionPower)), color, RandInt(minSize, maxSize), RandInt(0.3, 3), RandInt(4, 8), true);
 		}
 	}
 
