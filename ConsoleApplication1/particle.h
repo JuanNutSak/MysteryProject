@@ -79,20 +79,6 @@ void UpdateParticle(particle* p, vec2D acc, double dt)
 
 		p->lifeTime--;
 	}
-	
-	////TEMPORARY
-	//if (p->position.y > 720 - p->size / 2) {
-	//	p->position.y = 720 - p->size / 2;
-	//	p->velocity.y = -0.5 * p->velocity.y;
-	//}
-	//if (p->position.x < 0) {
-	//	p->position.x = 0;
-	//	p->velocity.x = -0.5 * p->velocity.x;
-	//}
-	//if (p->position.x > 1280) {
-	//	p->position.x = 1280;
-	//	p->velocity.x = -0.5 * p->velocity.x;
-	//}
 }
 
 void DrawParticle(particle* p, SDL_Renderer* renderer, SDL_Texture* img) {
@@ -112,8 +98,7 @@ public:
 	int particleCount;
 	particle *particles;
 	bool gravity;
-
-public: 
+ 
 	ParticleEmitter(vec2D pos, int partCount, bool isGravity = false)
 	{
 		particleCount = partCount;
@@ -144,13 +129,35 @@ public:
 
 class Explosion : public ParticleEmitter {		
 public:
-	Explosion(vec2D pos, float explosionPower, int partCount, int radius, SDL_Color color, int minSize, int maxSize, bool isGravity = false)
+	Explosion(vec2D pos, float explosionPower, int partCount, int radius, SDL_Color colors[], int minSize, int maxSize, bool isGravity = false)
 		: ParticleEmitter(pos, partCount, isGravity) {
 		for (int i = 0; i < partCount; i++)
 		{			
-			particles[i] = CreateParticle(Vec2D(position.x + RandInt(-radius,radius), position.y + RandInt(-radius,radius)), Vec2D(RandInt(-explosionPower, explosionPower), RandInt(-explosionPower, explosionPower)), color, RandInt(minSize, maxSize), RandInt(0.3, 3), RandInt(4, 8), true);
+			particles[i] = CreateParticle(Vec2D(position.x + RandInt(-radius,radius), position.y + RandInt(-radius,radius)), 
+										  Vec2D(RandInt(-explosionPower, explosionPower), RandInt(-explosionPower, explosionPower)), 
+										  colors[RandInt(0, ArrayCount(colors)-1)], RandInt(minSize, maxSize), RandInt(0.3, 3), RandInt(4, 8), true);
 		}
 	}
 
 	Explosion() {}
+};
+
+class JetStream : public ParticleEmitter {
+public:
+	float angle;
+	float width;
+
+	JetStream(vec2D pos, float jetStreamPower, int partCount, float emitterAngle, float emitterWidth, SDL_Color colors[], int minSize, int maxSize, bool isGravity = false)
+		:ParticleEmitter(pos, partCount, isGravity) {
+		this->angle = emitterAngle;
+		this->width = emitterWidth;
+		
+		//TODO figure out how particle creation will work
+	}
+	
+	void UpdateEmitter(float dt) {
+		ParticleEmitter::UpdateEmitter(dt);
+
+	}
+	
 };

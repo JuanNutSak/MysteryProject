@@ -91,7 +91,8 @@ int main(int argc, char* args[])	{
 	srand(time(NULL));
 	game_state state = { 0 };
 	
-	state.explosions[0] = Explosion(Vec2D(600, 450), 25, 2500, 15, { (uint8)RandInt(0,255), (uint8)RandInt(0,255), (uint8)RandInt(0,255), 255 }, 5, 15);
+	SDL_Color fire[] = { {245,232,2,255},{247,105,12,255},{237,46,12,255} };
+	state.explosions[0] = Explosion(Vec2D(600, 450), 50, 1000, 15, fire, 5, 15);
 
 	state.forces[0] = Vec2D(0.0, 680);
 
