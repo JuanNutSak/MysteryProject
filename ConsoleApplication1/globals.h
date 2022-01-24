@@ -3,12 +3,12 @@
 #include <ctype.h>
 #include <iostream>
 #include <SDL.h>
+#include <math.h>
 #include <SDL_image.h>
 
-#include "vectors.h"
-
-
 #define ArrayCount(a) (sizeof((a)) / sizeof((a)[0]))
+#define POINTER_SIZE 4
+#define PI 3.14159265
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;

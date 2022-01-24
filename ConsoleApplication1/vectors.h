@@ -1,5 +1,6 @@
 #pragma once
-#include <math.h>
+
+#include "globals.h"
 
 struct vec2D
 {
@@ -18,6 +19,17 @@ vec2D Vec2D(float x, float y)
 double DistanceBetween(vec2D a,vec2D b) 
 {
 	double result = sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
+	return result;
+}
+
+double Deg2Rads(double a) {
+	return a * PI / 180.0;
+}
+
+vec2D DirectionFromAngle(float angle) {
+	vec2D result = { 0 };
+	result.x = cos(Deg2Rads(angle));
+	result.y = sin(Deg2Rads(angle));
 	return result;
 }
 

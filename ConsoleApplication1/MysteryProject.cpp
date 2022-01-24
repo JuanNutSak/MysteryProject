@@ -2,6 +2,7 @@
 
 #include "globals.h"
 #include "timing.h"
+#include "vectors.h"
 #include "particle.h"
 
 enum image_id {
@@ -92,7 +93,7 @@ int main(int argc, char* args[])	{
 	game_state state = { 0 };
 	
 	SDL_Color fire[] = { {245,232,2,255},{247,105,12,255},{237,46,12,255} };
-	state.explosions[0] = Explosion(Vec2D(600, 450), 50, 1000, 15, fire, 5, 15);
+	state.explosions[0] = Explosion(Vec2D(600, 450), 50, 3, 15, fire, 5, 15);
 
 	state.forces[0] = Vec2D(0.0, 680);
 
@@ -123,7 +124,7 @@ int main(int argc, char* args[])	{
 	printf("\ninit time: %fms\n\n", millisToInit);
 
 	// ------------------------------------------------------  Pre - Loop Testing	
-
+	DirectionFromAngle(-90);
 
 	// -------------------------------------------------------------------------
 
