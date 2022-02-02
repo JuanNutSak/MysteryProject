@@ -37,32 +37,28 @@ struct particle {
 	float alpha;
 };
 
+void ReInitParticle(particle* p, vec2D pos, vec2D vel, SDL_Color color, uint32 s, float minLifeTime, float maxLifeTime, bool fadeOut = false) {
+	p->position = pos;
+	p->color = color;
+	p->velocity = vel;
+	p->size = s;
+	p->lifeTime = RandLifeTime(minLifeTime, maxLifeTime);
+	p->initialLifeTime = p->lifeTime;
+	p->fade = fadeOut;
+	p->liveState = ALIVE;
+}
+
 particle CreateParticle(vec2D pos, SDL_Color color, uint32 s, float minLifeTime,float maxLifeTime, bool fadeOut = false) {
 	particle result;
-
-	result.position = pos;
-	result.color = color;
-	result.velocity = { 0, 0 };
-	result.size = s;
-	result.lifeTime = RandLifeTime(minLifeTime, maxLifeTime);
-	result.initialLifeTime = result.lifeTime;
-	result.fade = fadeOut;
-	result.alpha = 255;
-	result.liveState = ALIVE;
+	ReInitParticle(&result, pos, Vec2D(0, 0), color, s, minLifeTime, maxLifeTime, fadeOut);
 
 	return result;
 }
 
+
 particle CreateParticle(vec2D pos, vec2D vel, SDL_Color color, uint32 s, float minLifeTime, float maxLifeTime, bool fadeOut = false) {
 	particle result;
-	result.position = pos;
-	result.color = color;
-	result.velocity = vel;
-	result.size = s;	
-	result.lifeTime = RandLifeTime(minLifeTime, maxLifeTime);
-	result.initialLifeTime = result.lifeTime;
-	result.fade = fadeOut;	
-	result.liveState = ALIVE;
+	ReInitParticle(&result, pos, vel, color, s, minLifeTime, maxLifeTime, fadeOut);
 
 	return result;
 }
@@ -108,25 +104,20 @@ class ParticleEmitter {
 public:
 	vec2D position;
 	int particleCount;
-	particle *particles;
-	particle **deadParticles;
-	int deadIndex;
+	particle *particles;	
 	bool gravity;
  
 	ParticleEmitter(vec2D pos, int partCount, bool isGravity = false)
 	{
 		particleCount = partCount;
 		gravity = isGravity;
-		position = pos;
-		deadIndex = 0;
+		position = pos;		
 		//
 		int sizeOfArray = sizeof(particle) * particleCount;
 		particles = (particle *)malloc(sizeOfArray);
 		memset(particles, 0, sizeOfArray);
-		//
-		sizeOfArray = POINTER_SIZE * particleCount;
-		deadParticles = (particle **)malloc(sizeOfArray);
-		memset(deadParticles, 0, sizeOfArray);
+		
+		
 	}
 
 	ParticleEmitter() {}
@@ -138,8 +129,7 @@ public:
 			particle* p = &particles[i];
 			UpdateParticle(p, fg, dt);
 			if (p->liveState == DEAD) {
-				p->liveState = WAITING;
-				deadParticles[deadIndex++] = p;
+				p->liveState = WAITING;				
 			}
 		}
 	}
@@ -169,31 +159,34 @@ public:
 
 class JetStream : public ParticleEmitter {
 public:
-	float angle;
+	float direction;
 	float width;
+	float emissionSpeed;	// the velocity of particles being emitted
+	int minSize, maxSize;
 	uint32 particlesPerFrame;
+	SDL_Color* colors;
 
-	JetStream(vec2D pos, float jetStreamPower, int partCount, float emitterAngle, float emitterWidth, uint32 emitterRate, SDL_Color colors[], int minSize, int maxSize, bool isGravity = false)
+	JetStream(vec2D pos, float emissionSpeed, int partCount, float emitterAngle, float emitterWidth, uint32 particlesPerFrame, SDL_Color colors[], int minSize, int maxSize, bool isGravity = false)
 		:ParticleEmitter(pos, partCount, isGravity) {
-		this->angle = emitterAngle;
+		this->emissionSpeed = emissionSpeed;
+		this->direction = emitterAngle;
 		this->width = emitterWidth;
-		this->particlesPerFrame = emitterRate/60;
+		this->particlesPerFrame = particlesPerFrame / 60;
+		this->minSize = minSize;
+		this->colors = colors;
 		
 		
 		//TODO figure out how particle creation will work
 	}
 	
 	void UpdateEmitter(float dt) {
-		ParticleEmitter::UpdateEmitter(dt);
+		ParticleEmitter::UpdateEmitter(dt);		
+		
+
+		// ------------------------------  Create the remaining particles
 		for (int i = 0; i < particlesPerFrame; i++) {
-			// given particles per frame,
-			// before creating particle check for waiting particles,
-			//		-yes: use them (recycle)
-			//		-mo: create
-			//
-			
-			//DirectionFromAngle
+			CreateParticle(position, DirectionFromAngle(direction) * emissionSpeed,
+						   colors[RandInt(0, ArrayCount(colors))], RandInt(minSize, maxSize),60, 180);
 		}
-	}
-	
+	}	
 };

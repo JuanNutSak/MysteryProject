@@ -124,7 +124,8 @@ int main(int argc, char* args[])	{
 	printf("\ninit time: %fms\n\n", millisToInit);
 
 	// ------------------------------------------------------  Pre - Loop Testing	
-	DirectionFromAngle(-90);
+			
+
 
 	// -------------------------------------------------------------------------
 
